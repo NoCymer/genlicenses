@@ -1,6 +1,6 @@
 {
   "name": "genlicenses",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "GenLicenses is an opensource CLI that helps developers managing their JavaScript projects by generating open source licenses from their projects's dependencies.",
   "main": "index.js",
   "type": "module",
@@ -13,8 +13,13 @@
     "license",
     "licenses",
     "generator",
+    "generation",
     "automatic"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NoCymer/genlicenses.git"
+  },
   "author": "NoCymer",
   "license": "MIT",
   "dependencies": {
