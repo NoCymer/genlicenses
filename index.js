@@ -10,8 +10,8 @@ program
     .version('1.0.0');
 
 program
-    .option('--devonly')
-    .option('--prodonly')
+    .option('--devonly', 'Only generates licences for the devDependencies of the project')
+    .option('--prodonly', 'Only generates licences for the dependencies of the project')
 
 program.parse();
 
