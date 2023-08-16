@@ -20,5 +20,8 @@ On the contrary, if used with the prodonly flag, then only the dependencies's li
 genlicenses --prodonly
 ```
 
+# Example output
+![screenshot](screenshots/example.png)
+
 # License
 GenLicenses is under a MIT License, see [LICENSE](LICENSE) for more information.

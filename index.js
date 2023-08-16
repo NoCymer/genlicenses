@@ -6,7 +6,7 @@ import chalk from 'chalk';
 
 program
     .name('genlicenses')
-    .description('CLI to generate open source licenses from any project\'s dependencies')
+    .description('GenLicenses is an opensource CLI that helps developers managing their JavaScript projects by generating open source licenses from their projects\'s dependencies.')
     .version('1.0.0');
 
 program
