@@ -1,0 +1,26 @@
+{
+  "name": "genlicenses",
+  "version": "1.0.0",
+  "description": "Fetches all licenses of a project's dependencies and creates a LICENSES.md file containing them.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "license",
+    "licenses",
+    "generator",
+    "automatic"
+  ],
+  "author": "NoCymer",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.4.0",
+    "chalk": "^5.3.0",
+    "commander": "^11.0.0"
+  },
+  "bin": {
+    "genlicenses": "./index.js"
+  } 
+}
