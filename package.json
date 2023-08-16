@@ -1,7 +1,7 @@
 {
   "name": "genlicenses",
   "version": "1.0.0",
-  "description": "Fetches all licenses of a project's dependencies and creates a LICENSES.md file containing them.",
+  "description": "CLI to generate open source licenses from any project's dependencies",
   "main": "index.js",
   "type": "module",
   "scripts": {
