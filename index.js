@@ -24,30 +24,60 @@ if(!options.prodonly && !options.devonly) {
     dev = true;
 }
 
+const fetchLicenses = async (depsToProcess) => {
+    let licenses = []
+    await Promise.all(depsToProcess.map(async (dep) => {
+        const lic = await fetchLicense(dep);
+        licenses.push(lic);
+    }));
+    return licenses;
+}
+
 const generateLicenses = async () => {
     const wd = process.cwd();
-    const packageJSON = JSON.parse(fs.readFileSync(wd + "\\package.json"));
+    let packageJSON;
+    try {
+        packageJSON = JSON.parse(fs.readFileSync(wd + "\\package.json"));
+    } catch {
+        console.error(chalk.redBright('File "package.json" not found, make sure you are running this command at the root of a node project.'));
+        return;
+    }
+
+    var twirlTimer = (function() {
+        var P = ["\\", "|", "/", "-"];
+        var x = 0;
+        return setInterval(function() {
+          process.stdout.write("\r" + P[x++]);
+          process.stdout.write(chalk.cyan("  Generating open source licenses, this process might take longer for larger projects."))
+          x &= 3;
+        }, 250);
+    })();
+
     const name = packageJSON.name;
-    const deps = packageJSON.dependencies;
+    const deps = packageJSON.dependencies == undefined ? [] : packageJSON.dependencies;
     const devDeps = packageJSON.devDependencies == undefined ? [] : packageJSON.devDependencies;
+    let depsToProcess = {};
+    if(prod) depsToProcess = deps;
+    if(dev) depsToProcess = {...depsToProcess, ...devDeps};
     
     let data = `${name} uses the following open source projects:\n\n`
     
-    if(prod) {
-        for (let dep in deps) {
-            const lic = await fetchLicense(dep);
-            data += `# [${lic.name}](${lic.url})\n\n`;
-            data += `\`\`\`\n${lic.text}\n\`\`\`\n\n`;
+    let licenses = await fetchLicenses(Object.keys(depsToProcess)); 
+    
+    licenses.sort(function (a, b) {
+        if (a.name < b.name) {
+            return -1;
         }
-    }
+        if (a.name > b.name) {
+            return 1;
+        }
+        return 0;
+    });
 
-    if(dev) {
-        for (let dep in devDeps) {
-            const lic = await fetchLicense(dep);
-            data += `# [${lic.name}](${lic.url})\n\n`;
-            data += `\`\`\`\n${lic.text}\n\`\`\`\n\n`;
-        }
-    }
+    licenses.forEach(license => {
+        data += `# [${license.name}](${license.url})\n\n`;
+        data += `\`\`\`\n${license.text}\n\`\`\`\n\n`;
+    });
     
     if(!fs.existsSync(wd + "\\docs")) {
         fs.mkdirSync(wd + "\\docs");
@@ -55,9 +85,10 @@ const generateLicenses = async () => {
     
     const licenses_path = wd + "\\docs\\LICENSES.md";
     fs.writeFileSync(licenses_path, data);
+    clearInterval(twirlTimer);
     console.log(
         chalk.greenBright(
-            `Generated open source licenses for ${
+            `\rGenerated open source licenses for ${
                 (prod ? Object.keys(deps).length : 0) + (dev ? Object.keys(devDeps).length : 0)
             } dependencies at ${licenses_path}`
         )
