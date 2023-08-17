@@ -24,18 +24,33 @@ if(!options.prodonly && !options.devonly) {
     dev = true;
 }
 
+/**
+ * Fetches asynchronously all licenses of the provided list of dependencies.
+ * @param {*} depsToProcess List of npm dependencies names
+ * @returns Alphabetically ordered licenses of all dependencies
+ */
 const fetchLicenses = async (depsToProcess) => {
     let licenses = []
+    
+    // Fetches all the licenses asynchronously 
     await Promise.all(depsToProcess.map(async (dep) => {
         const lic = await fetchLicense(dep);
         licenses.push(lic);
     }));
+
+    // Sorts the licenses alphabetically
+    licenses.sort(function (a, b) {
+        if (a.name < b.name) return -1;
+        if (a.name > b.name) return 1;
+        return 0;
+    });
     return licenses;
 }
 
 const generateLicenses = async () => {
     const wd = process.cwd();
     let packageJSON;
+    // Makes sure that the command is ran at the root of a node project.
     try {
         packageJSON = JSON.parse(fs.readFileSync(wd + "\\package.json"));
     } catch {
@@ -43,6 +58,7 @@ const generateLicenses = async () => {
         return;
     }
 
+    // Loading twirl timer
     var twirlTimer = (function() {
         var P = ["\\", "|", "/", "-"];
         var x = 0;
@@ -63,28 +79,23 @@ const generateLicenses = async () => {
     let data = `${name} uses the following open source projects:\n\n`
     
     let licenses = await fetchLicenses(Object.keys(depsToProcess)); 
-    
-    licenses.sort(function (a, b) {
-        if (a.name < b.name) {
-            return -1;
-        }
-        if (a.name > b.name) {
-            return 1;
-        }
-        return 0;
-    });
 
+    // Formats the licenses in the .md way
     licenses.forEach(license => {
         data += `# [${license.name}](${license.url})\n\n`;
         data += `\`\`\`\n${license.text}\n\`\`\`\n\n`;
     });
     
+    // Checks for the existence of the docs directory, else creates it.
     if(!fs.existsSync(wd + "\\docs")) {
         fs.mkdirSync(wd + "\\docs");
     }
     
+    // Saves the licenses in the LICENSES.md file
     const licenses_path = wd + "\\docs\\LICENSES.md";
     fs.writeFileSync(licenses_path, data);
+
+    // Cleanup and output
     clearInterval(twirlTimer);
     console.log(
         chalk.greenBright(
