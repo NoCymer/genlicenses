@@ -24,4 +24,12 @@ genlicenses --prodonly
 ![screenshot](https://i.imgur.com/9DMmvNo.png)
 
 # License
+
+## Project license
+
 GenLicenses is under a MIT License, see [LICENSE](LICENSE) for more information.
+
+## Open Source licenses
+
+See [LICENSES](docs/LICENSES.md).
+

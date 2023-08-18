@@ -1,7 +1,9 @@
 import axios from "axios";
+import fs from "fs";
 
 const NPM_REG_URL = 'https://registry.npmjs.org/';
-const GITHUB_LICENSE_TAG_ID_REGEX = /<a href="(.+?((LICENSE.*?(?="))|(license.*?(?="))))/;
+const GITHUB_LICENSE_TAG_REGEX = /<a href="(.+?((LICENSE.*?(?="))|(license.*?(?="))))/;
+const HYPERLINK_TAG_REGEX = /(<a(.|\n)+?>)/g;
 const GITLAB_LICENSE_TAG_ID_REGEX = /itemprop="license" href="(.+?(?=">))/;
 const GITHUB_PROJECT_ROOT = /github\.com\/(.+?(?=\/))\/(.+?(?=\/))/; 
 const GITHUBRAW_URL = "https://raw.githubusercontent.com";
@@ -12,7 +14,7 @@ const GITLAB_URL = "https://gitlab.com";
  * @param {*} npmURL URL of the npm package
  * @returns URL of the npm package's git repository 
  */
-const fetchRepositoryUrl = async (npmURL) => {
+export const fetchRepositoryUrl = async (npmURL) => {
     let res = (await axios.get(npmURL)).data.repository.url;
     if(res.startsWith("git://")) res = res.substring(6);
     else if(res.startsWith("git+")) res = res.substring(4);
@@ -27,14 +29,20 @@ const fetchRepositoryUrl = async (npmURL) => {
  * @param {*} githubURL GitHub URL of the npm package's repository
  * @returns Gitraw URL of the license
  */
-const fetchLicenseGitHub = async (githubURL) => {
+export const fetchLicenseGitHub = async (githubURL) => {
     if(githubURL.slice(-1) != '/') githubURL += '/';
     let urlMatches = ("" + githubURL).match(GITHUB_PROJECT_ROOT) 
     const simplifiedURL = `https://github.com/${urlMatches[1]}/${urlMatches[2]}`;
     const res = await axios.get(simplifiedURL);
     try {
-        const matches = ("" + res.data).match(GITHUB_LICENSE_TAG_ID_REGEX);
-        return (GITHUBRAW_URL + matches[1]).replace("blob/", "");
+        const matches = ("" + res.data).match(HYPERLINK_TAG_REGEX);
+        let out;
+        matches.forEach(match => {
+            if(match.includes("file:license"))
+                out = ("" + match).match(GITHUB_LICENSE_TAG_REGEX)[1]
+        });
+
+        return (GITHUBRAW_URL + out).replace("blob/", "");
     } catch {
         console.error("Error while parsing :", githubURL);
     }
@@ -45,7 +53,7 @@ const fetchLicenseGitHub = async (githubURL) => {
  * @param {*} gitlabURL Gitlab url of the npm package's repository
  * @returns Gitraw URL of the license
  */
-const fetchLicenseGitLab = async (gitlabURL) => {
+export const fetchLicenseGitLab = async (gitlabURL) => {
     const res = await axios.get(gitlabURL);
     try {
         const matches = ("" + res.data).match(GITLAB_LICENSE_TAG_ID_REGEX);
@@ -60,12 +68,16 @@ const fetchLicenseGitLab = async (gitlabURL) => {
  * @param {*} gitURL Gitlab or Github url of the npm package
  * @returns Gitraw URL of the license
  */
-const fetchLicenseUrl = async (gitURL) => {
+export const fetchLicenseUrl = async (gitURL) => {
     if(("" + gitURL).includes("gitlab")) {
         return await fetchLicenseGitLab(gitURL);
     } else if (("" + gitURL).includes("github")) {
         return await fetchLicenseGitHub(gitURL);
     }
+}
+
+export const getNpmUrl = (packageName) => {
+    return NPM_REG_URL + packageName;
 }
 
 /**
@@ -75,7 +87,7 @@ const fetchLicenseUrl = async (gitURL) => {
  * the url of the package's repository as well as its license
  */
 export const fetchLicense = async (npmPackageName) => {
-    const url = NPM_REG_URL + npmPackageName;
+    const url = getNpmUrl(npmPackageName);
     const repoURL = await fetchRepositoryUrl(url);
     const res = await axios.get(
         await fetchLicenseUrl(repoURL)
