@@ -32,11 +32,11 @@ if(!options.prodonly && !options.devonly) {
 const fetchLicenses = async (depsToProcess) => {
     let licenses = []
     
-    // Fetches all the licenses asynchronously 
-    await Promise.all(depsToProcess.map(async (dep) => {
-        const lic = await fetchLicense(dep);
+    // Fetches all the licenses synchronously to avoid being rate limited  
+    for(let dep in depsToProcess) {
+        const lic = await fetchLicense(depsToProcess[dep]);
         licenses.push(lic);
-    }));
+    }
 
     // Sorts the licenses alphabetically
     licenses.sort(function (a, b) {

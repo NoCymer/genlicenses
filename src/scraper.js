@@ -32,17 +32,10 @@ export const fetchRepositoryUrl = async (npmURL) => {
 export const fetchLicenseGitHub = async (githubURL) => {
     if(githubURL.slice(-1) != '/') githubURL += '/';
     let urlMatches = ("" + githubURL).match(GITHUB_PROJECT_ROOT) 
-    const simplifiedURL = `https://github.com/${urlMatches[1]}/${urlMatches[2]}`;
+    const simplifiedURL = `https://api.github.com/repos/${urlMatches[1]}/${urlMatches[2]}/license`;
     const res = await axios.get(simplifiedURL);
     try {
-        const matches = ("" + res.data).match(HYPERLINK_TAG_REGEX);
-        let out;
-        matches.forEach(match => {
-            if(match.includes("file:license"))
-                out = ("" + match).match(GITHUB_LICENSE_TAG_REGEX)[1]
-        });
-
-        return (GITHUBRAW_URL + out).replace("blob/", "");
+        return res.data["download_url"];
     } catch {
         console.error("Error while parsing :", githubURL);
     }

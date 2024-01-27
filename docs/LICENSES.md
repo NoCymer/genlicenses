@@ -84,7 +84,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ```
 
-# [jest](https://github.com/facebook/jest)
+# [jest](https://github.com/jestjs/jest)
 
 ```
 MIT License
